@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CT Puzzle : Tangram</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: rgba(30, 41, 59, 0.88);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --accent-color: #38bdf8;
+      --accent-hover: #0284c7;
+      --accent-active: #0369a1;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --btn-bg: #1e293b;
+      --btn-hover: #334155;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header Bar */
+    header {
+      flex: 0 0 auto;
+      height: 52px;
+      padding: 0 1rem;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(56, 189, 248, 0.4);
+    }
+
+    .logo-badge svg {
+      width: 20px;
+      height: 20px;
+      fill: #ffffff;
+    }
+
+    h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h1 span.edition {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--accent-color);
+      background: rgba(56, 189, 248, 0.12);
+      padding: 2px 7px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    /* Common Buttons */
+    button, select {
+      font-family: inherit;
+      color: var(--text-main);
+      background: var(--btn-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    button:hover, select:hover {
+      background: var(--btn-hover);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.primary {
+      background: var(--accent-color);
+      color: #0f172a;
+      border-color: var(--accent-color);
+    }
+    button.primary:hover {
+      background: var(--accent-hover);
+      color: #ffffff;
+    }
+
+    button.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    button.danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    button svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+
+    select {
+      outline: none;
+      padding-right: 1.5rem;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.4rem center;
+      background-size: 1.1em;
+    }
+
+    /* Main Viewport Workspace */
+    #workspace-container {
+      flex: 1 1 auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 8px;
+    }
+
+    #canvas-card {
+      position: relative;
+      background: #111827;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      display: flex;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+
+    /* Overlay Floating HUD info */
+    .hud-info {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .badge-hud {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: rgba(255, 255, 255, 0.85);
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(6px);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: fit-content;
+    }
+
+    .badge-hud .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      box-shadow: 0 0 6px var(--accent-color);
+    }
+
+    /* Solvers / Animation Banner */
+    #anim-banner {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--accent-color);
+      border-radius: 30px;
+      padding: 6px 14px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 15;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+      animation: popIn 0.25s ease;
+    }
+
+    #anim-banner span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    /* Bottom Control Dock */
+    footer {
+      flex: 0 0 auto;
+      padding: 0.5rem 1rem env(safe-area-inset-bottom, 0.5rem);
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      z-index: 20;
+    }
+
+    .control-cluster {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .shortcut-tip {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: none;
+    }
+
+    @media (min-width: 860px) {
+      .shortcut-tip {
+        display: inline-block;
+      }
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      max-width: 580px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .modal-header h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      padding: 4px;
+      cursor: pointer;
+    }
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-content {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .modal-content code {
+      background: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #38bdf8;
+    }
+
+    .key-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #334155;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    @keyframes popIn {
+      0% { transform: translate(-50%, 15px) scale(0.92); opacity: 0; }
+      100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    }
+
+    /* Small Mobile Tweaks */
+    @media (max-width: 600px) {
+      header {
+        padding: 0 0.5rem;
+        height: 48px;
+      }
+      h1 span.edition {
+        display: none;
+      }
+      footer {
+        justify-content: center;
+        padding: 0.4rem 0.5rem calc(env(safe-area-inset-bottom, 0px) + 0.4rem);
+      }
+      button, select {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-group">
+      <div class="logo-badge" title="CT Puzzle : Tangram">
+        <svg viewBox="0 0 24 24">
+          <path d="M2,2 L14,2 L8,8 Z M14,2 L22,2 L14,10 Z M2,2 L2,14 L8,8 Z M2,14 L2,22 L10,14 Z M10,14 L18,22 L2,22 Z M14,10 L22,2 L22,18 Z M14,10 L18,22 L22,18 Z"/>
+        </svg>
+      </div>
+      <h1>CT Puzzle : Tangram <span class="edition">Cleve Moler Engine</span></h1>
+    </div>
+
+    <div class="nav-actions">
+      <select id="theme-select" title="Color Palette">
+        <option value="dark2">Theme: Dark 2 (MATLAB)</option>
+        <option value="kitty">Theme: Kitty Colors</option>
+        <option value="vibrant">Theme: Neon Modern</option>
+        <option value="wood">Theme: Classic Wood</option>
+      </select>
+      <button id="btn-info" title="Computational Thinking & Game Guide">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+        <span>Info</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Container -->
+  <div id="workspace-container">
+    <div id="canvas-card">
+      <canvas id="tangramCanvas"></canvas>
+
+      <!-- Overlay HUD -->
+      <div class="hud-info">
+        <div class="badge-hud">
+          <span class="dot"></span>
+          <span id="selection-label">Piece: None (Click to pick)</span>
+        </div>
+        <div class="badge-hud">
+          <span>Bounds: [-8, 8] &times; [-6, 6]</span>
+        </div>
+      </div>
+
+      <!-- Animation / Solver Playback Bar -->
+      <div id="anim-banner">
+        <span id="anim-title">Running: Swan</span>
+        <button id="btn-stop-anim" class="danger">Stop Solver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Control Dock -->
+  <footer>
+    <div class="control-cluster">
+      <!-- Solver Demos -->
+      <select id="solver-select" title="Select Algorithmic Demo">
+        <option value="" disabled selected>Select Animated Solver</option>
+        <option value="swan">Solve: Swan (Cleve Moler)</option>
+        <option value="kitty">Solve: Kitty Cat (Cleve Moler)</option>
+        <option value="square">Solve: Grand Square (Cleve Moler)</option>
+      </select>
+
+      <button id="btn-run-solver" class="primary" title="Run animated step solver">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+        <span>Play</span>
+      </button>
+
+      <button id="btn-reset" title="Restart / Reset positions">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+        <span>Reset</span>
+      </button>
+    </div>
+
+    <div class="control-cluster">
+      <!-- Piece Transform Controls -->
+      <button id="btn-rot-left" title="Rotate Counter-Clockwise (9 deg / pi/20)">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7 1 1 0 11-2 0 5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <span>-9&deg;</span>
+      </button>
+
+      <button id="btn-rot-right" title="Rotate Clockwise (9 deg / pi/20)">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H9a5 5 0 00-5 5 1 1 0 11-2 0 7 7 0 017-7h5.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        <span>+9&deg;</span>
+      </button>
+
+      <button id="btn-flip" title="Flip Parallelogram (Piece 7)">
+        <svg viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" clip-rule="evenodd"/></svg>
+        <span>Flip (#7)</span>
+      </button>
+
+      <span class="shortcut-tip">Drag center to Move &bull; Drag edge or Scroll to Rotate</span>
+    </div>
+  </footer>
+
+  <!-- Info Modal -->
+  <div id="modal-info" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>CT Puzzle : Tangram</h2>
+        <button id="modal-close-btn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content">
+        <p><strong>CT Puzzle : Tangram</strong> faithfully implements the interactive mathematical tangram puzzle designed by <strong>Cleve Moler</strong> (founder of MathWorks, creators of MATLAB).</p>
+
+        <h3 style="color: var(--accent-color); font-size: 0.95rem;">Computational Thinking Core</h3>
+        <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem;">
+          <li><strong>Decomposition:</strong> Break complex shapes into 7 standard Euclidean polygons (2 large triangles, 1 medium triangle, 2 small triangles, 1 square, 1 parallelogram).</li>
+          <li><strong>Algorithmic Transformations:</strong> Translate $\vec{v} + \Delta\vec{z}$, rotate through complex multiples $e^{i\theta}$ ($\theta = \pi/20 = 9^\circ$), and reflect the chiral parallelogram across its vertical axis.</li>
+          <li><strong>Pattern Recognition & Convergence:</strong> Nearest-vertex Euclidean distance calculation $\min |z_k - w_j| < 0.5$, magnetically snapping pieces into exact geometric alignment.</li>
+        </ul>
+
+        <h3 style="color: var(--accent-color); font-size: 0.95rem; margin-top: 0.4rem;">Controls & Gestures</h3>
+        <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem;">
+          <li><strong>Move Piece:</strong> Click/touch near the center (centroid) of a piece and drag.</li>
+          <li><strong>Rotate Piece:</strong> Click/touch near an outer vertex and drag, or use the mouse scroll wheel over any piece. Increments are quantized to $9^\circ$ ($\pi/20$).</li>
+          <li><strong>Flip Parallelogram:</strong> Select Piece #7 and press <span class="key-badge">F</span> or click <strong>Flip (#7)</strong>.</li>
+          <li><strong>Keyboard Shortcuts:</strong> <span class="key-badge">R</span> Rotate +9&deg;, <span class="key-badge">Shift + R</span> Rotate -9&deg;, <span class="key-badge">F</span> Flip #7, <span class="key-badge">Esc</span> Deselect.</li>
+          <li><strong>Magnetic Snapping:</strong> Release a piece near an adjacent edge or corner to snap it with audio-visual feedback.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * CT Puzzle : Tangram
+     * Exact Mathematical Recreation of Cleve Moler's MATLAB Tangram Engine
+     */
+
+    // Audio Context Synthesizer for Magnetic Snaps
+    class TangramAudio {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playSnapSound() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+          osc.frequency.exponentialRampToValueAtTime(783.99, this.ctx.currentTime + 0.08); // G5
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.19);
+        } catch (e) {
+          // Audio blocked or unsupported
+        }
+      }
+    }
+
+    const soundEngine = new TangramAudio();
+
+    // Palettes matching MATLAB lib
+    const PALETTES = {
+      dark2: [
+        [27/256, 158/256, 119/256],
+        [217/256, 95/256, 2/256],
+        [117/256, 112/256, 179/256],
+        [231/256, 41/256, 138/256],
+        [102/256, 166/256, 30/256],
+        [230/256, 171/256, 2/256],
+        [167/256, 118/256, 28/256]
+      ],
+      kitty: [
+        [184/256, 228/256, 68/256],
+        [248/256, 211/256, 0/256],
+        [121/256, 160/256, 238/256],
+        [184/256, 113/256, 198/256],
+        [184/256, 113/256, 198/256],
+        [160/256, 82/256, 45/256],
+        [235/256, 235/256, 200/256]
+      ],
+      vibrant: [
+        [0.06, 0.75, 0.99],
+        [0.99, 0.35, 0.55],
+        [0.65, 0.35, 0.95],
+        [0.10, 0.85, 0.55],
+        [0.98, 0.70, 0.10],
+        [0.35, 0.50, 0.98],
+        [0.95, 0.45, 0.20]
+      ],
+      wood: [
+        [0.76, 0.53, 0.36],
+        [0.55, 0.35, 0.22],
+        [0.65, 0.45, 0.28],
+        [0.82, 0.62, 0.45],
+        [0.50, 0.30, 0.18],
+        [0.72, 0.50, 0.33],
+        [0.60, 0.40, 0.25]
+      ]
+    };
+
+    function rgbString(c, boost = 1.0) {
+      const r = Math.min(255, Math.round(c[0] * 255 * boost));
+      const g = Math.min(255, Math.round(c[1] * 255 * boost));
+      const b = Math.min(255, Math.round(c[2] * 255 * boost));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Geometry generators matching Cleve Moler's complex variable formulas:
+    // triangle = @(s) [-s-s*i, s-s*i, 0, -s-s*i]
+    // square = @(s) [0, s, s+s*i, s*i, 0]
+    // parallelogram = @(s) [-2*s-2*s*i, 0-2*s*i, s-s*i, -s-s*i, -2*s-2*s*i]
+    function genTriangle(s) {
+      return [
+        { x: -s, y: -s },
+        { x:  s, y: -s },
+        { x:  0, y:  0 }
+      ];
+    }
+
+    function genSquare(s) {
+      return [
+        { x: 0, y: 0 },
+        { x: s, y: 0 },
+        { x: s, y: s },
+        { x: 0, y: s }
+      ];
+    }
+
+    function genParallelogram(s) {
+      return [
+        { x: -2 * s, y: -2 * s },
+        { x:  0,     y: -2 * s },
+        { x:  s,     y: -s },
+        { x: -s,     y: -s }
+      ];
+    }
+
+    class TangramPiece {
+      constructor(id, baseVertices, initialShift, colorIndex) {
+        this.id = id;
+        this.baseVertices = baseVertices.map(v => ({ ...v }));
+        this.colorIndex = colorIndex;
+        this.isFlipped = false;
+        this.highlight = false;
+
+        // Apply initial shift offset
+        this.vertices = this.baseVertices.map(v => ({
+          x: v.x + initialShift.x,
+          y: v.y + initialShift.y
+        }));
+      }
+
+      getCentroid() {
+        const n = this.vertices.length;
+        let sumX = 0, sumY = 0;
+        for (let i = 0; i < n; i++) {
+          sumX += this.vertices[i].x;
+          sumY += this.vertices[i].y;
+        }
+        return { x: sumX / n, y: sumY / n };
+      }
+
+      translate(dx, dy) {
+        for (let i = 0; i < this.vertices.length; i++) {
+          this.vertices[i].x += dx;
+          this.vertices[i].y += dy;
+        }
+      }
+
+      rotate(deg, center = null) {
+        if (!center) center = this.getCentroid();
+        const rad = (deg * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+
+        for (let i = 0; i < this.vertices.length; i++) {
+          const vx = this.vertices[i].x - center.x;
+          const vy = this.vertices[i].y - center.y;
+          this.vertices[i].x = vx * cos - vy * sin + center.x;
+          this.vertices[i].y = vx * sin + vy * cos + center.y;
+        }
+      }
+
+      flipHorizontal() {
+        const c = this.getCentroid();
+        for (let i = 0; i < this.vertices.length; i++) {
+          this.vertices[i].x = 2 * c.x - this.vertices[i].x;
+        }
+        this.isFlipped = !this.isFlipped;
+      }
+
+      contains(px, py) {
+        // Ray-casting point-in-polygon
+        let inside = false;
+        const vs = this.vertices;
+        for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+          const xi = vs[i].x, yi = vs[i].y;
+          const xj = vs[j].x, yj = vs[j].y;
+          const intersect = ((yi > py) !== (yj > py)) &&
+            (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      }
+
+      distToCentroid(px, py) {
+        const c = this.getCentroid();
+        return Math.hypot(px - c.x, py - c.y);
+      }
+
+      minDistToVertices(px, py) {
+        let minDist = Infinity;
+        for (const v of this.vertices) {
+          const d = Math.hypot(px - v.x, py - v.y);
+          if (d < minDist) minDist = d;
+        }
+        return minDist;
+      }
+    }
+
+    // Main App Controller
+    class TangramApp {
+      constructor() {
+        this.canvas = document.getElementById('tangramCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.container = document.getElementById('workspace-container');
+
+        // Coordinate domain: Cleve Moler's [-8, 8] x [-6, 6]
+        this.worldW = 8;
+        this.worldH = 6;
+
+        this.currentPalette = PALETTES.dark2;
+        this.pieces = [];
+        this.selectedPiece = null;
+        this.isDragging = false;
+        this.interactionMode = 'none'; // 'drag' or 'rotate'
+        this.lastPointerWorld = { x: 0, y: 0 };
+        this.activeSolver = null;
+
+        this.initPieces();
+        this.setupEventListeners();
+        this.resize();
+        this.render();
+      }
+
+      initPieces(offsets = null) {
+        // Initial Shift from Cleve Moler's start.m & Tangram.m
+        // shift = [-2.25-1i, 2.25-1i, -2.5+1.5i, 0.5+1i, 3.5+1i, -2.5+2i, 2.5+4i]
+        const defaultOffsets = [
+          { x: -2.25, y: -1.0 },
+          { x:  2.25, y: -1.0 },
+          { x: -2.50, y:  1.5 },
+          { x:  0.50, y:  1.0 },
+          { x:  3.50, y:  1.0 },
+          { x: -2.50, y:  2.0 },
+          { x:  2.50, y:  4.0 }
+        ];
+
+        const s = offsets || defaultOffsets;
+        const sqrt2 = Math.SQRT2;
+
+        this.pieces = [
+          new TangramPiece(1, genTriangle(2), s[0], 0),
+          new TangramPiece(2, genTriangle(2), s[1], 1),
+          new TangramPiece(3, genTriangle(sqrt2), s[2], 2),
+          new TangramPiece(4, genTriangle(1), s[3], 3),
+          new TangramPiece(5, genTriangle(1), s[4], 4),
+          new TangramPiece(6, genSquare(sqrt2), s[5], 5),
+          new TangramPiece(7, genParallelogram(1), s[6], 6)
+        ];
+
+        this.selectedPiece = null;
+        this.updateHUD();
+      }
+
+      // Viewport Transform Helpers
+      worldToScreen(wx, wy) {
+        const x = this.originX + wx * this.scale;
+        const y = this.originY - wy * this.scale; // Flip Y for Cartesian convention
+        return { x, y };
+      }
+
+      screenToWorld(sx, sy) {
+        const wx = (sx - this.originX) / this.scale;
+        const wy = (this.originY - sy) / this.scale;
+        return { wx, wy };
+      }
+
+      resize() {
+        const rect = this.container.getBoundingClientRect();
+        const availableW = Math.max(rect.width - 16, 280);
+        const availableH = Math.max(rect.height - 16, 240);
+
+        // Maintain 16:12 (4:3) exact aspect ratio matching bounds [-8, 8] x [-6, 6]
+        const targetAspect = (this.worldW * 2) / (this.worldH * 2); // 16 / 12 = 1.3333
+        let drawW, drawH;
+
+        if (availableW / availableH > targetAspect) {
+          drawH = availableH;
+          drawW = drawH * targetAspect;
+        } else {
+          drawW = availableW;
+          drawH = drawW / targetAspect;
+        }
+
+        const dpr = window.devicePixelRatio || 1;
+        this.canvas.width = Math.floor(drawW * dpr);
+        this.canvas.height = Math.floor(drawH * dpr);
+        this.canvas.style.width = `${Math.floor(drawW)}px`;
+        this.canvas.style.height = `${Math.floor(drawH)}px`;
+
+        this.ctx.resetTransform?.();
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        this.scale = drawW / (this.worldW * 2);
+        this.originX = drawW / 2;
+        this.originY = drawH / 2;
+
+        this.render();
+      }
+
+      render() {
+        const ctx = this.ctx;
+        const w = this.canvas.width / (window.devicePixelRatio || 1);
+        const h = this.canvas.height / (window.devicePixelRatio || 1);
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Outer Bounding Box: plot([-w w w -w -w], [-h -h h h -h], 'k-', 'linewidth', 3)
+        const p1 = this.worldToScreen(-this.worldW, -this.worldH);
+        const p2 = this.worldToScreen(this.worldW, this.worldH);
+
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(p1.x, p2.y, p2.x - p1.x, p1.y - p2.y);
+
+        // Soft grid lines
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        for (let x = -this.worldW; x <= this.worldW; x += 2) {
+          const l1 = this.worldToScreen(x, -this.worldH);
+          const l2 = this.worldToScreen(x, this.worldH);
+          ctx.beginPath();
+          ctx.moveTo(l1.x, l1.y);
+          ctx.lineTo(l2.x, l2.y);
+          ctx.stroke();
+        }
+        for (let y = -this.worldH; y <= this.worldH; y += 2) {
+          const l1 = this.worldToScreen(-this.worldW, y);
+          const l2 = this.worldToScreen(this.worldW, y);
+          ctx.beginPath();
+          ctx.moveTo(l1.x, l1.y);
+          ctx.lineTo(l2.x, l2.y);
+          ctx.stroke();
+        }
+
+        // Draw Tangram Pieces
+        for (let k = 0; k < this.pieces.length; k++) {
+          const piece = this.pieces[k];
+          const isSelected = (piece === this.selectedPiece);
+
+          ctx.beginPath();
+          const first = this.worldToScreen(piece.vertices[0].x, piece.vertices[0].y);
+          ctx.moveTo(first.x, first.y);
+
+          for (let i = 1; i < piece.vertices.length; i++) {
+            const pt = this.worldToScreen(piece.vertices[i].x, piece.vertices[i].y);
+            ctx.lineTo(pt.x, pt.y);
+          }
+          ctx.closePath();
+
+          // Face color with optional highlight boost
+          const boost = piece.highlight ? 1.35 : 1.0;
+          ctx.fillStyle = rgbString(this.currentPalette[piece.colorIndex], boost);
+          ctx.fill();
+
+          // Border stroke
+          if (isSelected) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+
+            // Centroid indicator circle
+            const c = piece.getCentroid();
+            const sc = this.worldToScreen(c.x, c.y);
+            ctx.beginPath();
+            ctx.arc(sc.x, sc.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+          } else {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+
+          // Piece Label #
+          const centroid = piece.getCentroid();
+          const labelPt = this.worldToScreen(centroid.x, centroid.y);
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(piece.id.toString(), labelPt.x, labelPt.y);
+        }
+      }
+
+      // Magnetic Snapping Engine (snap.m)
+      performSnap(targetPiece) {
+        if (!targetPiece) return false;
+
+        const tol = 0.52; // Tolerance from MATLAB snap.m (0.5)
+        let minD = Infinity;
+        let bestDelta = { x: 0, y: 0 };
+
+        // Compare all vertices of targetPiece to all vertices of other pieces
+        for (const vTarget of targetPiece.vertices) {
+          for (const other of this.pieces) {
+            if (other === targetPiece) continue;
+            for (const vOther of other.vertices) {
+              const dx = vOther.x - vTarget.x;
+              const dy = vOther.y - vTarget.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < minD) {
+                minD = dist;
+                bestDelta = { x: dx, y: dy };
+              }
+            }
+          }
+        }
+
+        if (minD < tol) {
+          targetPiece.translate(bestDelta.x, bestDelta.y);
+          targetPiece.highlight = true;
+          soundEngine.playSnapSound();
+          setTimeout(() => {
+            targetPiece.highlight = false;
+            this.render();
+          }, 350);
+          return true;
+        }
+        return false;
+      }
+
+      updateHUD() {
+        const hud = document.getElementById('selection-label');
+        if (this.selectedPiece) {
+          hud.textContent = `Piece: #${this.selectedPiece.id} (${this.getPieceName(this.selectedPiece.id)})`;
+        } else {
+          hud.textContent = 'Piece: None (Click to pick)';
+        }
+      }
+
+      getPieceName(id) {
+        switch(id) {
+          case 1:
+          case 2: return 'Large Triangle';
+          case 3: return 'Medium Triangle';
+          case 4:
+          case 5: return 'Small Triangle';
+          case 6: return 'Square';
+          case 7: return 'Parallelogram';
+          default: return 'Piece';
+        }
+      }
+
+      // Event Listeners & Interaction Dispatch
+      setupEventListeners() {
+        window.addEventListener('resize', () => this.resize());
+
+        const getCoords = (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          return this.screenToWorld(clientX - rect.left, clientY - rect.top);
+        };
+
+        const onDown = (e) => {
+          if (this.activeSolver) this.stopSolver();
+          const { wx, wy } = getCoords(e);
+          soundEngine.init();
+
+          // Find topmost piece hit (checking in reverse order)
+          let hit = null;
+          for (let i = this.pieces.length - 1; i >= 0; i--) {
+            if (this.pieces[i].contains(wx, wy)) {
+              hit = this.pieces[i];
+              // Bring hit piece to top of render stack
+              this.pieces.splice(i, 1);
+              this.pieces.push(hit);
+              break;
+            }
+          }
+
+          if (hit) {
+            this.selectedPiece = hit;
+            this.isDragging = true;
+            this.lastPointerWorld = { x: wx, y: wy };
+
+            // Cleve Moler's Button Motion Check:
+            // "Check if closer to center or vertex."
+            const dCenter = hit.distToCentroid(wx, wy);
+            const dVertex = hit.minDistToVertices(wx, wy);
+
+            if (dCenter < dVertex) {
+              this.interactionMode = 'drag';
+            } else {
+              this.interactionMode = 'rotate';
+            }
+          } else {
+            this.selectedPiece = null;
+            this.isDragging = false;
+            this.interactionMode = 'none';
+          }
+
+          this.updateHUD();
+          this.render();
+        };
+
+        const onMove = (e) => {
+          if (!this.isDragging || !this.selectedPiece) return;
+          e.preventDefault();
+
+          const { wx, wy } = getCoords(e);
+          const p = this.selectedPiece;
+
+          if (this.interactionMode === 'drag') {
+            const dx = wx - this.lastPointerWorld.x;
+            const dy = wy - this.lastPointerWorld.y;
+            p.translate(dx, dy);
+            this.lastPointerWorld = { x: wx, y: wy };
+          } else if (this.interactionMode === 'rotate') {
+            // Rotate about the center by integer multiples of pi/20 (9 degrees)
+            const c = p.getCentroid();
+            const anglePrev = Math.atan2(this.lastPointerWorld.y - c.y, this.lastPointerWorld.x - c.x);
+            const angleCurr = Math.atan2(wy - c.y, wx - c.x);
+            let dTheta = angleCurr - anglePrev;
+
+            // Quantize to 9 degrees (pi/20)
+            const stepRad = Math.PI / 20; // 9 degrees
+            const quantized = Math.round(dTheta / stepRad) * stepRad;
+
+            if (Math.abs(quantized) >= stepRad) {
+              p.rotate((quantized * 180) / Math.PI, c);
+              this.lastPointerWorld = { x: wx, y: wy };
+            }
+          }
+
+          this.render();
+        };
+
+        const onUp = () => {
+          if (this.isDragging && this.selectedPiece) {
+            this.performSnap(this.selectedPiece);
+          }
+          this.isDragging = false;
+          this.interactionMode = 'none';
+          this.render();
+        };
+
+        this.canvas.addEventListener('mousedown', onDown);
+        window.addEventListener('mousemove', onMove, { passive: false });
+        window.addEventListener('mouseup', onUp);
+
+        this.canvas.addEventListener('touchstart', onDown, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onUp);
+
+        // Wheel Rotation
+        this.canvas.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          if (!this.selectedPiece) return;
+          const dir = e.deltaY < 0 ? 1 : -1;
+          this.selectedPiece.rotate(dir * 9); // pi/20 = 9 degrees
+          this.performSnap(this.selectedPiece);
+          this.render();
+        }, { passive: false });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+          if (!this.selectedPiece) return;
+          if (e.key === 'r' || e.key === 'R') {
+            const dir = e.shiftKey ? -1 : 1;
+            this.selectedPiece.rotate(dir * 9);
+            this.performSnap(this.selectedPiece);
+            this.render();
+          } else if (e.key === 'f' || e.key === 'F') {
+            if (this.selectedPiece.id === 7) {
+              this.selectedPiece.flipHorizontal();
+              this.performSnap(this.selectedPiece);
+              this.render();
+            }
+          } else if (e.key === 'Escape') {
+            this.selectedPiece = null;
+            this.updateHUD();
+            this.render();
+          }
+        });
+
+        // UI Button Handlers
+        document.getElementById('btn-reset').addEventListener('click', () => {
+          this.stopSolver();
+          this.initPieces();
+          this.render();
+        });
+
+        document.getElementById('btn-rot-left').addEventListener('click', () => {
+          if (!this.selectedPiece) return;
+          this.selectedPiece.rotate(-9);
+          this.performSnap(this.selectedPiece);
+          this.render();
+        });
+
+        document.getElementById('btn-rot-right').addEventListener('click', () => {
+          if (!this.selectedPiece) return;
+          this.selectedPiece.rotate(9);
+          this.performSnap(this.selectedPiece);
+          this.render();
+        });
+
+        document.getElementById('btn-flip').addEventListener('click', () => {
+          const piece7 = this.pieces.find(p => p.id === 7);
+          if (piece7) {
+            this.selectedPiece = piece7;
+            piece7.flipHorizontal();
+            this.performSnap(piece7);
+            this.updateHUD();
+            this.render();
+          }
+        });
+
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+          this.currentPalette = PALETTES[e.target.value] || PALETTES.dark2;
+          this.render();
+        });
+
+        // Info Modal Handlers
+        const modal = document.getElementById('modal-info');
+        document.getElementById('btn-info').addEventListener('click', () => {
+          modal.style.display = 'flex';
+        });
+        document.getElementById('modal-close-btn').addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // Solver Handlers
+        document.getElementById('btn-run-solver').addEventListener('click', () => {
+          const solverSelect = document.getElementById('solver-select');
+          const chosen = solverSelect.value || 'swan';
+          this.runSolver(chosen);
+        });
+
+        document.getElementById('btn-stop-anim').addEventListener('click', () => {
+          this.stopSolver();
+        });
+      }
+
+      // Solvers Architecture replicating swan.m, kitty.m, and square.m
+      stopSolver() {
+        if (this.activeSolver) {
+          cancelAnimationFrame(this.activeSolver.raf);
+          this.activeSolver = null;
+        }
+        document.getElementById('anim-banner').style.display = 'none';
+      }
+
+      runSolver(type) {
+        this.stopSolver();
+
+        // Cleve Moler's start.m initial offsets for puzzle solutions:
+        // offset = [-4.25+3i, 0.25+3i, 4.25+2.5i, -4.25+5i, -1.25+5i, 0.75+4i, 4.75+6i]
+        const solverStartOffsets = [
+          { x: -4.25, y: 3.0 },
+          { x:  0.25, y: 3.0 },
+          { x:  4.25, y: 2.5 },
+          { x: -4.25, y: 5.0 },
+          { x: -1.25, y: 5.0 },
+          { x:  0.75, y: 4.0 },
+          { x:  4.75, y: 6.0 }
+        ];
+
+        this.initPieces(solverStartOffsets);
+
+        const banner = document.getElementById('anim-banner');
+        const title = document.getElementById('anim-title');
+        banner.style.display = 'flex';
+        title.textContent = `Running: ${type.toUpperCase()} Solver`;
+
+        let steps = [];
+        const N = 40; // Number of animation ticks per segment
+
+        if (type === 'swan') {
+          steps = this.generateSwanSteps(N);
+        } else if (type === 'kitty') {
+          steps = this.generateKittySteps(N);
+        } else if (type === 'square') {
+          steps = this.generateSquareSteps(N);
+        }
+
+        let stepIndex = 0;
+        let tickIndex = 0;
+
+        const animate = () => {
+          if (stepIndex >= steps.length) {
+            this.stopSolver();
+            return;
+          }
+
+          const currentStep = steps[stepIndex];
+          if (currentStep.action === 'move_rot') {
+            for (const sub of currentStep.subs) {
+              const p = this.pieces.find(item => item.id === sub.id);
+              if (p) {
+                if (sub.dx || sub.dy) p.translate(sub.dx / N, sub.dy / N);
+                if (sub.deg) p.rotate(sub.deg / N);
+              }
+            }
+            tickIndex++;
+            if (tickIndex >= N) {
+              tickIndex = 0;
+              stepIndex++;
+            }
+          } else if (currentStep.action === 'snap') {
+            const p = this.pieces.find(item => item.id === currentStep.id);
+            if (p) this.performSnap(p);
+            stepIndex++;
+          } else if (currentStep.action === 'flip') {
+            const p = this.pieces.find(item => item.id === currentStep.id);
+            if (p) p.flipHorizontal();
+            stepIndex++;
+          }
+
+          this.render();
+          this.activeSolver = {
+            raf: requestAnimationFrame(animate)
+          };
+        };
+
+        this.activeSolver = {
+          raf: requestAnimationFrame(animate)
+        };
+      }
+
+      // Exact Steps translated directly from Cleve Moler's MATLAB scripts
+      generateSwanSteps(N) {
+        return [
+          // P2: tanmove(P{2},-0.5/N,-5.0/N), tanrot(P{2},-135/N)
+          { action: 'move_rot', subs: [{ id: 2, dx: -0.5, dy: -5.0, deg: -135 }] },
+          // P1: tanmove(P{1},3.0/N,-3.5/N), tanrot(P{1},180/N)
+          { action: 'move_rot', subs: [{ id: 1, dx: 3.0, dy: -3.5, deg: 180 }] },
+          { action: 'snap', id: 1 },
+          // P3: tanmove(P{3},-3.0/N,-4.0/N), tanrot(P{3},-90/N)
+          { action: 'move_rot', subs: [{ id: 3, dx: -3.0, dy: -4.0, deg: -90 }] },
+          { action: 'snap', id: 3 },
+          // P4: tanmove(P{4},6/N,-6.5/N), tanrot(P{4},90/N)
+          { action: 'move_rot', subs: [{ id: 4, dx: 6.0, dy: -6.5, deg: 90 }] },
+          { action: 'snap', id: 4 },
+          // P6: tanmove(P{6},-0.75/N,-5.75/N), tanrot(P{6},-45/N)
+          { action: 'move_rot', subs: [{ id: 6, dx: -0.75, dy: -5.75, deg: -45 }] },
+          { action: 'snap', id: 6 },
+          // P7: tanmove(P{7},-5.25/N,-3.5/N), tanrot(P{7},90/N)
+          { action: 'move_rot', subs: [{ id: 7, dx: -5.25, dy: -3.5, deg: 90 }] },
+          { action: 'flip', id: 7 },
+          // P7: tanmove(P{7},1.5/N,0)
+          { action: 'move_rot', subs: [{ id: 7, dx: 1.5, dy: 0, deg: 0 }] },
+          { action: 'snap', id: 7 },
+          // P5: tanmove(P{5},3.0/N,-3.0/N), tanrot(P{5},135/N)
+          { action: 'move_rot', subs: [{ id: 5, dx: 3.0, dy: -3.0, deg: 135 }] },
+          { action: 'snap', id: 5 }
+        ];
+      }
+
+      generateKittySteps(N) {
+        return [
+          // P2: tanmove(P{2},0.0,-5/N), tanrot(P{2},-135/N)
+          { action: 'move_rot', subs: [{ id: 2, dx: 0.0, dy: -5.0, deg: -135 }] },
+          // P7: tanmove(P{7},-1.25/N,-8.25/N)
+          { action: 'move_rot', subs: [{ id: 7, dx: -1.25, dy: -8.25, deg: 0 }] },
+          { action: 'snap', id: 7 },
+          // P1: tanmove(P{1},3.875/N,-2.75/N), tanrot(P{1},-90/N)
+          { action: 'move_rot', subs: [{ id: 1, dx: 3.875, dy: -2.75, deg: -90 }] },
+          { action: 'snap', id: 1 },
+          // P3: tanmove(P{3},-6/N,-2.3/N), tanrot(P{3},90/N)
+          { action: 'move_rot', subs: [{ id: 3, dx: -6.0, dy: -2.3, deg: 90 }] },
+          { action: 'snap', id: 3 },
+          // P6: tanmove(P{6},-2.5/N,-3/N), tanrot(P{6},-45/N)
+          { action: 'move_rot', subs: [{ id: 6, dx: -2.5, dy: -3.0, deg: -45 }] },
+          { action: 'snap', id: 6 },
+          // P4 & P5 together
+          { action: 'move_rot', subs: [
+            { id: 4, dx: 2.7, dy: -2.0, deg: -90 },
+            { id: 5, dx: 1.1, dy: -1.8, deg: 90 }
+          ]},
+          { action: 'snap', id: 4 },
+          { action: 'snap', id: 5 }
+        ];
+      }
+
+      generateSquareSteps(N) {
+        return [
+          { action: 'move_rot', subs: [{ id: 1, dx: 0, dy: 0, deg: -90 }] },
+          { action: 'move_rot', subs: [{ id: 2, dx: -0.70, dy: -3.75, deg: 0 }] },
+          { action: 'move_rot', subs: [{ id: 1, dx: 2.25, dy: -2.30, deg: 0 }] },
+          { action: 'snap', id: 1 },
+          { action: 'move_rot', subs: [{ id: 6, dx: -1.21, dy: -5.50, deg: -45 }] },
+          { action: 'snap', id: 6 },
+          { action: 'move_rot', subs: [
+            { id: 4, dx: 4.0, dy: -4.3, deg: -180 },
+            { id: 5, dx: 2.5, dy: -6.0, deg: 90 }
+          ]},
+          { action: 'snap', id: 4 },
+          { action: 'snap', id: 5 },
+          { action: 'move_rot', subs: [{ id: 3, dx: -3.1, dy: -1.0, deg: -45 }] },
+          { action: 'snap', id: 3 },
+          { action: 'move_rot', subs: [{ id: 7, dx: -6.5, dy: -1.75, deg: 0 }] },
+          { action: 'flip', id: 7 },
+          { action: 'move_rot', subs: [{ id: 7, dx: 1.2, dy: -1.7, deg: 0 }] },
+          { action: 'snap', id: 7 }
+        ];
+      }
+    }
+
+    // Launch Application once DOM is ready
+    window.addEventListener('DOMContentLoaded', () => {
+      new TangramApp();
+    });
+  </script>
+</body>
+</html>
